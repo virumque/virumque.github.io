@@ -1,1 +1,139 @@
-Hello World
+<html>
+<head>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>BTC</title>
+<script>
+var coin = ['BTC', 'ETH'];
+var n = 0;         // Numero de moneda mostrada
+var modo = 0;      // Formato 40, 40K5, 40456, XL
+var lastTouch = 0; // Instante del ultimo evento Touch
+var price;
+
+function cambiaModo()
+{
+    modo = (modo + 1) % 4;
+    var texto = document.getElementById('btc');
+    const fontSize = ['32em', '24em', '20em', '16em'];
+    texto.setAttribute("font-size", fontSize[modo]);
+
+    muestra();
+}
+
+function cambiaMoneda()
+{
+    now = Date.now()
+    // Para no cambiar de moneda varias veces en un gesto
+    if (now - lastTouch > 1000)
+    {
+        lastTouch = now;
+        n = (n + 1) % coin.length;
+        muestra();
+    }
+}
+
+function pide()
+{
+    // Construimos una url como 'https://api.gdax.com/products/BTC-USD/book';
+    var url = 'https://api.gdax.com/products/' + coin[n] + '-USD/book';
+    var url = 'https://api-public.sandbox.pro.coinbase.com/products/' + coin[n] + '-USD/book';
+    var url = 'https://api.binance.com/api/v3/ticker/price?symbol=' + coin[n] + 'USDT';
+    var currentPrice = new XMLHttpRequest();
+
+    currentPrice.open('GET', url, true);
+    currentPrice.onreadystatechange = 
+    function()
+    {
+        if (currentPrice.readyState == 4) 
+        {
+            var ticker = JSON.parse(currentPrice.responseText);
+            var time = new Date().toJSON().slice(11,19)
+            // console.log(time)
+            //price = ticker.bids[0][0];
+            price = ticker.price;
+            muestra();
+        }
+    }
+    currentPrice.send();	    
+}
+
+function muestra()
+{
+    var texto = document.getElementById('btc');
+    var b = document.getElementById('barra');                                               
+    var miles = Math.floor(price / 1000);
+    var cientos = Math.round((price - 1000 * miles) / 100);
+    var miles1 = miles;
+    if (cientos == 10)
+    {
+       miles1 += 1;
+       cientos = 0;
+    }
+
+    switch (modo)
+    {
+        case 0:
+             texto.innerHTML = miles;
+             break;
+        case 1:
+             texto.innerHTML = miles1 + 'K' + cientos;
+             break;
+        case 2:
+             texto.innerHTML = Math.round(price);
+             break;
+        case 3:
+             texto.innerHTML = (Math.round(price * 10) / 10).toFixed(1);
+             break;
+    }
+
+    document.title = miles1 + 'K' + cientos;
+
+    miles = Math.floor(price / 1000);
+    var porcentaje = (price - 1000*miles) / 10;
+    b.setAttribute('width', porcentaje + '%');
+}
+
+function carga()
+{
+    document.getElementById('body').addEventListener('click', cambiaModo);
+    try
+    {
+        document.getElementById('body').addEventListener('touchmove', cambiaMoneda);
+    }
+    catch {};
+
+
+    pide();
+    setInterval(pide, 2500);
+}
+
+</script>
+</head>
+<body id="body" onload="carga()">
+<svg width="100%" height="100%">
+  <rect id="barra" x="0" y="0" width="0%" height="100%"  stroke="none" fill="palegreen" opacity="0.75"/>
+  <g stroke="lightgray" stroke-width="4">
+      <line x1="10%" y1="0" x2="10%" y2="10%" />
+      <line x1="10%" y1="90%" x2="10%" y2="100%" />
+      <line x1="20%" y1="0" x2="20%" y2="10%" />
+      <line x1="20%" y1="90%" x2="20%" y2="100%" />
+      <line x1="30%" y1="0" x2="30%" y2="10%" />
+      <line x1="30%" y1="90%" x2="30%" y2="100%" />
+      <line x1="40%" y1="0" x2="40%" y2="10%" />
+      <line x1="40%" y1="90%" x2="40%" y2="100%" />
+      <line x1="50%" y1="0" x2="50%" y2="10%" />
+      <line x1="50%" y1="90%" x2="50%" y2="100%" />
+      <line x1="60%" y1="0" x2="60%" y2="10%" />
+      <line x1="60%" y1="90%" x2="60%" y2="100%" />
+      <line x1="70%" y1="0" x2="70%" y2="10%" />
+      <line x1="70%" y1="90%" x2="70%" y2="100%" />
+      <line x1="80%" y1="0" x2="80%" y2="10%" />
+      <line x1="80%" y1="90%" x2="80%" y2="100%" />
+      <line x1="90%" y1="0" x2="90%" y2="10%" />
+      <line x1="90%" y1="90%" x2="90%" y2="100%" />
+  </g>
+  <text id="btc" x="50%" y="50%" font-size="32em" font-family="arial" dominant-baseline="central" text-anchor="middle" fill="green"></text>
+</svg>
+</body>
+</html>
